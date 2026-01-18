@@ -25,6 +25,7 @@ const CandlestickChart = ({
 
   // when period changes, fetch new OHLC data
   const fetchOHLCData = async (selectedPeriod: Period) => {
+    setLoading(true); // code rabbit suggested
     try {
       const { days } = PERIOD_CONFIG[selectedPeriod];
 
@@ -38,6 +39,8 @@ const CandlestickChart = ({
       setOhlcData(newData ?? []);
     } catch (e) {
       console.error('Failed to fetch OHLCData', e);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -64,7 +67,11 @@ const CandlestickChart = ({
     // Add candlestick series to the chart
     const series = chart.addSeries(CandlestickSeries, getCandlestickConfig());
 
-    series.setData(convertOHLCData(ohlcData));
+    const convertedToSeconds = ohlcData.map(
+      (item) => [Math.floor(item[0] / 1000), item[1], item[2], item[3], item[4]] as OHLCData,
+    );
+
+    series.setData(convertOHLCData(convertedToSeconds));
     chart.timeScale().fitContent();
 
     chartRef.current = chart;
@@ -82,7 +89,10 @@ const CandlestickChart = ({
       chartRef.current = null;
       candleSeriesRef.current = null;
     };
-  }, [height]);
+  }, [height, period]); //code rabbit suggested to add period
+
+/* showTime depends on period (line 57) and is passed to getChartConfig() (line 60), but this effect only runs on height changes. When period is updated via handlePeriodChange(), the chart is never recreated with the new time scale visibility setting. */
+
 
   // update chart data when ohlcData or period changes
   useEffect(() => {

@@ -51,6 +51,15 @@ export function trendingClasses(value: number) {
 export function timeAgo(date: string | number | Date): string {
   const now = new Date();
   const past = new Date(date);
+/*
+--Code Rabbit
+new Date(invalid) creates an Invalid Date object, causing toISOString() to throw "Invalid time value" on line 70. Since the function accepts string | number | Date, invalid date strings are a realistic input. Add a sanity check before computing deltas.
+
+*/
+// Added check for invalid date - code rabbit
+  const pastTime = past.getTime();
+  if (Number.isNaN(pastTime)) return '';
+
   const diff = now.getTime() - past.getTime(); // difference in ms
 
   const seconds = Math.floor(diff / 1000);
